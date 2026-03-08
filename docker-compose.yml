@@ -1,0 +1,40 @@
+services:
+  ollama-mi50:
+    image: xxdoman/ollama-mi50:v0.17.7
+    container_name: ollama-mi50
+    restart: unless-stopped
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined
+    networks:
+      - ai-network
+    volumes:
+      - ollama_models:/models
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_MODELS=/models
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_KV_CACHE_TYPE=q4_0
+      - OLLAMA_FLASH_ATTENTION=1
+      - HSA_OVERRIDE_GFX_VERSION=9.0.6
+      - LD_LIBRARY_PATH=/usr/lib/ollama/rocm
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: amd
+              count: all
+              capabilities: [gpu]
+
+networks:
+  ai-network:
+    external: true
+
+volumes:
+  ollama_models:
+    external: true
