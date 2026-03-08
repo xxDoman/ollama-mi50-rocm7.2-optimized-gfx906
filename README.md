@@ -56,3 +56,5 @@ docker run -d --name ollama-mi50 \
 > **Warning**: If you are trying to run this on a different GPU architecture, it likely won't work or will perform poorly. Use at your own risk.
 
 ---
+### License
+This project is licensed under the MIT License.
