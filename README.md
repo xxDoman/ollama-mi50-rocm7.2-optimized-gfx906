@@ -39,6 +39,48 @@ docker run -d --name ollama-mi50 \
   xxdoman/ollama-mi50:v0.17.7
 
 ```
+---
+
+### 📂 Model Storage Configuration
+
+To ensure Ollama uses your existing models and doesn't download them inside the container, you must map your host directory correctly.
+
+#### Method 1: Docker Compose (Recommended)
+
+Edit the `volumes` section in your `docker-compose.yml` to match your local path:
+
+```yaml
+services:
+  ollama-mi50:
+    ...
+    volumes:
+      - /home/models/ollama:/models # Path on your host : Path in container
+    environment:
+      - OLLAMA_MODELS=/models # Tells Ollama where to find the files
+
+```
+
+#### Method 2: Docker Run (Manual CLI)
+
+If you are running the command manually, you must use the `-v` flag for the mapping and `-e` for the environment variable:
+
+```bash
+docker run -d --name ollama-mi50 \
+  --device=/dev/kfd \
+  --device-cgroup-rule='c 226:* rmw' \
+  -v /dev/dri:/dev/dri \
+  -v /home/models/ollama:/models \
+  -e OLLAMA_MODELS=/models \
+  -e HSA_OVERRIDE_GFX_VERSION=9.0.6 \
+  ...
+
+```
+
+### ⚠️ Important Note
+
+* **Path Alignment**: The host path (e.g., `/home/models/ollama`) must exist and contain your models before starting the container.
+* **Environment Sync**: You **must** set `-e OLLAMA_MODELS=/models` so the application knows to look in the mounted directory instead of the default location.
+
 
 ### Critical Environment Variables:
 
@@ -55,6 +97,5 @@ docker run -d --name ollama-mi50 \
 
 > **Warning**: If you are trying to run this on a different GPU architecture, it likely won't work or will perform poorly. Use at your own risk.
 
----
 ### License
 This project is licensed under the MIT License.
