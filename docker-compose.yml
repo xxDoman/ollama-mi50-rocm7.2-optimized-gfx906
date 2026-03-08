@@ -13,7 +13,8 @@ services:
     networks:
       - ai-network
     volumes:
-      - ollama_models:/models
+      # Mapowanie Twojego fizycznego folderu z modelami
+      - /home/models/ollama:/models 
     ports:
       - "11434:11434"
     environment:
@@ -33,8 +34,4 @@ services:
 
 networks:
   ai-network:
-    external: true
-
-volumes:
-  ollama_models:
     external: true
