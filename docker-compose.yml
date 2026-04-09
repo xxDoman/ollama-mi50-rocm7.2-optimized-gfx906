@@ -1,6 +1,6 @@
 services:
   ollama-mi50:
-    image: xxdoman/ollama-mi50:v0.17.7
+    image: xxdoman/ollama-mi50:latest
     container_name: ollama-mi50
     restart: unless-stopped
     devices:
