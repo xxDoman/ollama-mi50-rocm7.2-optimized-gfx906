@@ -1,6 +1,6 @@
 # Optimized Ollama for AMD Instinct MI50 (gfx906)
 
-This repository contains a high-performance Docker image for **Ollama (v0.17.7)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
+This repository contains a high-performance Docker image for **Ollama (v0.20.3)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
 
 The build utilizes **ROCm 7.2** to fix critical issues found in standard deployments, such as text corruption ("garbage output") in recurrent models like **Qwen 3.5**.
 
@@ -19,8 +19,9 @@ Tested on **Qwen 3.5 35B (Q6_K)**:
 
 ## 🛠️ Usage
 
-To run the container with full hardware acceleration on your MI50, use the following command:
+To run the container with full hardware acceleration on your MI50, use the following command 
 
+(you can also use `-e OLLAMA_KV_CACHE_TYPE=q8_0` for higher precision cache):
 ```bash
 docker rm -f ollama-mi50
 docker run -d --name ollama-mi50 \
@@ -36,7 +37,7 @@ docker run -d --name ollama-mi50 \
   -e OLLAMA_FLASH_ATTENTION=1 \
   -e HSA_OVERRIDE_GFX_VERSION=9.0.6 \
   -e LD_LIBRARY_PATH="/usr/lib/ollama/rocm" \
-  xxdoman/ollama-mi50:v0.17.7
+  xxdoman/ollama-mi50:latest
 
 ```
 ---
