@@ -76,7 +76,20 @@ docker run -d --name ollama-mi50 \
   ...
 
 ```
+## 📥 Importing custom GGUF models
+To use a custom `.gguf` model downloaded directly from HuggingFace, create a `Modelfile`:
 
+1. Create a text file named `Modelfile`:
+
+```dockerfile
+FROM /models/your-model-file.gguf
+```
+
+2. Import it into Ollama:
+
+```bash
+docker exec -it ollama-mi50 ollama create my-custom-model -f /models/Modelfile
+```
 ### ⚠️ Important Note
 
 * **Path Alignment**: The host path (e.g., `/home/models/ollama`) must exist and contain your models before starting the container.
@@ -89,14 +102,17 @@ docker run -d --name ollama-mi50 \
 * **`OLLAMA_KV_CACHE_TYPE=q4_0`**: Reduces VRAM footprint for long contexts.
 * **`OLLAMA_FLASH_ATTENTION=1`**: Enables optimized attention kernels for significant speedup.
 
-### 🐳 Dockerfile Overview
+## 🌍 Hardware Support & Dockerfile Overview
 
-* **Exclusive Architecture**: This image is strictly built and compiled for **AMD Instinct MI50 (gfx906)**.
-* **No Multi-GPU Bloat**: To maximize performance and reduce image size, support for other architectures (like gfx10xx or gfx11xx) has been intentionally excluded.
-* **Pre-compiled for Vega 20**: Includes specialized `LLAMA_HIP` libraries and kernels specifically tuned for **gfx906** instruction sets.
-* **Optimized for 32GB HBM2**: Memory reporting and buffer management are hard-coded to leverage the MI50’s specific memory layout.
+* **Broad Architecture Support:** While explicitly tuned for **AMD Instinct MI50 (gfx906)**, the integrated `rocBLAS` library includes pre-compiled kernels for multiple GPUs. It features out-of-the-box support for:
+  * **Instinct Series:** MI100 (`gfx908`), MI200/250 (`gfx90a`), MI300 (`gfx942`)
+  * **Radeon RX 6000 (RDNA 2):** e.g., `gfx1030`
+  * **Radeon RX 7000 (RDNA 3):** e.g., `gfx1100`, `gfx1101`, `gfx1150`
+  * **Next-Gen (RDNA 4):** `gfx1200`, `gfx1201`
+* **Pre-compiled for Vega 20:** Includes specialized `LLAMA_HIP` libraries targeting the `gfx906` instruction sets.
+* **Optimized for 32GB HBM2:** Memory reporting and buffer management leverage the MI50’s specific memory layout.
 
-> **Warning**: If you are trying to run this on a different GPU architecture, it likely won't work or will perform poorly. Use at your own risk.
+⚠️ **Disclaimer:** Support for architectures other than `gfx906` is provided "as-is" based on library availability and has not been rigorously tested by the author.
 
 ### License
 This project is licensed under the MIT License.
