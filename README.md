@@ -95,6 +95,31 @@ docker exec -it ollama-mi50 ollama create my-custom-model -f /models/Modelfile
 * **Path Alignment**: The host path (e.g., `/home/models/ollama`) must exist and contain your models before starting the container.
 * **Environment Sync**: You **must** set `-e OLLAMA_MODELS=/models` so the application knows to look in the mounted directory instead of the default location.
 
+### Explain  Importing .gguf models 
+
+Place models in the volume directory (e.g., `/home/models/ollama`) on the host (e.g `Qwen3.5-27B.Q4_K_M.gguf` - [link](https://huggingface.co/Jackrong/Qwen3.5-27B-Claude-4.6-Opus-Reasoning-Distilled-GGUF?show_file_info=Qwen3.5-27B.Q4_K_M.gguf)
+
+Create new directory `modelfiles` and file `.Modelfile` (e.g `/home/models/ollama/modelfiles/Qwen35.Modelfile`)
+
+Set contents with path to .gguf as in the container mounted path
+
+```yaml
+FROM /models/Qwen3.5-27B.Q4_K_M.gguf
+TEMPLATE """{{ .Prompt }}"""
+PARAMETER temperature 0.7
+```
+
+Enter docker container and create ollama `qwen35` model from Modelfile
+
+```bash
+docker run -it <hash> /bin/bash
+#check files exist
+ls /models && ls /models/modelfiles
+ollama create qwen35 -f /models/modelfiles/Qwen35.Modelfile
+```
+
+Now your .gguf model will appear as the `qwen35` in the list in connected OpenWebUI or other interface
+
 
 ### Critical Environment Variables:
 
