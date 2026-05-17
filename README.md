@@ -1,4 +1,7 @@
-# Optimized Ollama for AMD Instinct MI50 (gfx906)
+# Optimized Ollama for AMD Instinct MI50 (gfx906) 
+Update: v0.24.0 (Date: 17.05.2026) \
+Update: v0.30.0-rc17 (Date: 17.05.2026) (add -e OLLAMA_LLM_LIBRARY=rocm) \
+Update: v0.23.0 (Date: 05.05.2026) 
 
 This repository contains a high-performance Docker image for **Ollama (v0.20.3)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
 
@@ -32,6 +35,7 @@ docker run -d --name ollama-mi50 \
   -v ollama_models:/models \
   -p 11434:11434 \
   -e OLLAMA_MODELS=/models \
+  -e OLLAMA_LLM_LIBRARY=rocm \
   -e OLLAMA_NUM_PARALLEL=1 \
   -e OLLAMA_KV_CACHE_TYPE=q4_0 \
   -e OLLAMA_FLASH_ATTENTION=1 \
@@ -41,6 +45,39 @@ docker run -d --name ollama-mi50 \
 
 ```
 ---
+My Portainer (Stack)
+```bash
+version: '3.8'
+services:
+  ollama-mi50:
+    image: xxdoman/ollama-mi50:latest
+    container_name: ollama-mi50
+    restart: unless-stopped
+    devices:
+      - /dev/kfd:/dev/kfd
+      - /dev/dri:/dev/dri
+    device_cgroup_rules:
+      - 'c 226:* rmw'
+    ports:
+      - "11434:11434"
+    environment:
+      - OLLAMA_MODELS=/models
+      - OLLAMA_NUM_PARALLEL=1
+      - OLLAMA_KV_CACHE_TYPE=q8_0
+      - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_LLM_LIBRARY=rocm
+      - HSA_OVERRIDE_GFX_VERSION=9.0.6
+      - LD_LIBRARY_PATH=/usr/lib/ollama/rocm
+    volumes:
+      - /home/models/ollama/:/models
+      - /home/ollama_data:/root
+      - /home/ai_work:/workspace
+    networks:
+      - ai-network
+networks:
+  ai-network:
+    external: true
+```
 
 ### 📂 Model Storage Configuration
 
