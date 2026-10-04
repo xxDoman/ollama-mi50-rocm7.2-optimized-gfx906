@@ -1,6 +1,6 @@
 services:
   ollama-mi50:
-    image: xxdoman/ollama-mi50:v0.35.1
+    image: xxdoman/ollama-mi50:latest
     container_name: ollama-mi50
     restart: unless-stopped
     shm_size: 16g
