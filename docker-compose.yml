@@ -1,36 +1,30 @@
 services:
   ollama-mi50:
-    image: xxdoman/ollama-mi50:latest
+    image: xxdoman/ollama-mi50:v0.35.1
     container_name: ollama-mi50
     restart: unless-stopped
+    shm_size: 16g
     devices:
       - /dev/kfd:/dev/kfd
       - /dev/dri:/dev/dri
-    cap_add:
-      - SYS_PTRACE
-    security_opt:
-      - seccomp:unconfined
+    device_cgroup_rules:
+      - 'c 226:* rmw'
     networks:
       - ai-network
     volumes:
-      # Mapowanie Twojego fizycznego folderu z modelami
-      - /home/models/ollama:/models 
+      - /home/models/ollama:/models
+      - /home/ollama_data:/root
+      - /home/ai_work:/workspace
     ports:
-      - "11434:11434"
+      - "11430:11434"
     environment:
       - OLLAMA_MODELS=/models
       - OLLAMA_NUM_PARALLEL=1
-      - OLLAMA_KV_CACHE_TYPE=q4_0
+      - OLLAMA_KV_CACHE_TYPE=q8_0
       - OLLAMA_FLASH_ATTENTION=1
+      - OLLAMA_LLM_LIBRARY=rocm
       - HSA_OVERRIDE_GFX_VERSION=9.0.6
       - LD_LIBRARY_PATH=/usr/lib/ollama/rocm
-    deploy:
-      resources:
-        reservations:
-          devices:
-            - driver: amd
-              count: all
-              capabilities: [gpu]
 
 networks:
   ai-network:
