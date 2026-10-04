@@ -93,8 +93,11 @@ docker run -d --name ollama-mi50 \
   -e OLLAMA_FLASH_ATTENTION=1 \
   -e HSA_OVERRIDE_GFX_VERSION=9.0.6 \
   -e LD_LIBRARY_PATH="/usr/lib/ollama/rocm" \
-  xxdoman/ollama-mi50:v0.35.1
+  xxdoman/ollama-mi50:latest
 ```
+
+`latest` is the rolling tag — it always points at the newest build (currently v0.35.1).
+Pin a specific version (`:v0.35.1`) if you want reproducible pulls.
 
 ---
 
