@@ -1,13 +1,21 @@
 # Optimized Ollama for AMD Instinct MI50 (gfx906)
 
+Update: v0.35.1 (Date: 04.10.2026) — rebuilt on Ollama 0.35.1 (llama.cpp b11232); two tags now (clean / omni)
 Update: v0.32.14 (Date: 26.08.2026) — MTP / speculative decoding works, new benchmarks
- Update: v0.24.0 (Date: 17.05.2026)
- Update: v0.30.0-rc17 (Date: 17.05.2026) (add -e OLLAMA_LLM_LIBRARY=rocm)
- Update: v0.23.0 (Date: 05.05.2026)
+Update: v0.30.0-rc17 (Date: 17.05.2026) (add -e OLLAMA_LLM_LIBRARY=rocm)
+Update: v0.24.0 (Date: 17.05.2026)
+Update: v0.23.0 (Date: 05.05.2026)
 
-This repository contains a high-performance Docker image for **Ollama (v0.32.14)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
+This repository contains a high-performance Docker image for **Ollama (v0.35.1)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
 
 The build utilizes **ROCm 7.2** to fix critical issues found in standard deployments, such as text corruption ("garbage output") in recurrent models like **Qwen 3.5**.
+
+## 🏷️ Which tag should I use?
+
+- **`v0.35.1`** (and `latest`) — clean build. Use this by default.
+- **`v0.35.1-omni`** — same engine, **plus** Ollama's in-process compatibility layer (`llama/compat`). Needed to load published ollama-format GGUFs whose architecture is not registered in mainline llama.cpp (e.g. `nemotron_h_omni`; single blob: text + vision + audio). Without it you get `error loading model: unknown model architecture: '<arch>'`.
+
+Both are engine v0.35.1 (llama.cpp b11232); the only difference is whether the compatibility shim is linked in.
 
 ## 🌟 Key Improvements
 
@@ -18,7 +26,7 @@ The build utilizes **ROCm 7.2** to fix critical issues found in standard deploym
 
 ## 🚀 Performance (MI50 32GB)
 
-Tested on a clean GPU (nothing else occupying VRAM), Ollama v0.32.14, KV cache `q8_0`, flash attention on, all layers fully offloaded:
+Numbers below were measured on the **v0.32.14 engine** (clean GPU, nothing else occupying VRAM, KV cache `q8_0`, flash attention on, all layers fully offloaded). The v0.35.1 engine uses the same `draft-mtp` speculative path; re-measure if you need exact v0.35.1 figures.
 
 | model | long generation | short answers |
 |---|---|---|
@@ -85,7 +93,7 @@ docker run -d --name ollama-mi50 \
   -e OLLAMA_FLASH_ATTENTION=1 \
   -e HSA_OVERRIDE_GFX_VERSION=9.0.6 \
   -e LD_LIBRARY_PATH="/usr/lib/ollama/rocm" \
-  xxdoman/ollama-mi50:latest
+  xxdoman/ollama-mi50:v0.35.1
 ```
 
 ---
@@ -95,7 +103,7 @@ My Portainer (Stack)
 ```
 services:
   ollama-mi50:
-    image: xxdoman/ollama-mi50:v0.32.14
+    image: xxdoman/ollama-mi50:v0.35.1
     container_name: ollama-mi50
     restart: unless-stopped
     shm_size: 16g
@@ -210,16 +218,20 @@ Now your .gguf model will appear as the `qwen35` in the list in connected OpenWe
 - **`OLLAMA_KV_CACHE_TYPE=q8_0`**: Reduces VRAM footprint for long contexts.
 - **`OLLAMA_FLASH_ATTENTION=1`**: Enables optimized attention kernels for significant speedup.
 
-## 🌍 Hardware Support & Dockerfile Overview
+## 🌍 Architecture Scope (read this before using on another card)
 
-- **Broad Architecture Support:** While explicitly tuned for **AMD Instinct MI50 (gfx906)**, the integrated `rocBLAS` library includes pre-compiled kernels for multiple GPUs. It features out-of-the-box support for:
-  - **Instinct Series:** MI100 (`gfx908`), MI200/250 (`gfx90a`), MI300 (`gfx942`)
-  - **Radeon RX 6000 (RDNA 2):** e.g., `gfx1030`
-  - **Radeon RX 7000 (RDNA 3):** e.g., `gfx1100`, `gfx1101`, `gfx1150`
-  - **Next-Gen (RDNA 4):** `gfx1200`, `gfx1201`
+This image is built **for gfx906 (Vega 20: MI50 / MI60 / Radeon VII)**. The inference engine itself — `libggml-hip.so` — is compiled with `AMDGPU_TARGETS=gfx906` and contains **only gfx906 device code**. It is the engine (not rocBLAS) that performs the model math, so this image runs accelerated **only on gfx906**.
+
+What `rocBLAS` adds: the bundled `rocBLAS`/Tensile library does ship pre-compiled kernels for a wider set of AMD targets (`gfx1030`, `gfx1100`, `gfx1101`, `gfx1102`, `gfx1150`, `gfx1151`, `gfx1200`, `gfx1201`, `gfx908`, `gfx90a`, `gfx942`, `gfx950`). Those kernels only help GEMM-heavy paths and only *if* the inference engine can load on that card — which, as built here, it cannot for non-gfx906 targets.
+
+**Bottom line:**
+
+- ✅ Tested and supported: **gfx906** (Instinct MI50, MI60, Radeon VII).
+- ⚠️ Other gfx targets (RDNA 2/3/4, MI100/MI200/MI300): **not built and not tested.** Running there would require rebuilding `libggml-hip.so` with that target added (`-DAMDGPU_TARGETS="gfx906;<target>"`); the bundled rocBLAS kernels alone are not enough. Do not expect it to just work.
 - **Pre-compiled for Vega 20:** Includes specialized `LLAMA_HIP` libraries targeting the `gfx906` instruction sets.
 - **Optimized for 32GB HBM2:** Memory reporting and buffer management leverage the MI50's specific memory layout.
-⚠️ **Disclaimer:** Support for architectures other than `gfx906` is provided "as-is" based on library availability and has not been rigorously tested by the author.
+
+If you need this image on a non-gfx906 card and can test it, open an issue with your results — that is how the scope can grow.
 
 ### License
 
