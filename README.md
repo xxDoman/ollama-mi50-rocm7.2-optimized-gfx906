@@ -1,21 +1,23 @@
 # Optimized Ollama for AMD Instinct MI50 (gfx906)
 
+Update: v0.40.13 (Date: 30.10.2026) — rebuilt on Ollama 0.40.13 (llama.cpp b11963, the v0.8.x line): CPU backend now ships 13 arch variants, so models load again on CPUs older than Haswell (`make_cpu_buft_list: no CPU backend found`, issue #6); first release with LiquidAI LFM3 (text / vision / audio / omni)
+Update: v0.40.2 (Date: 11.10.2026) — Ollama 0.40.2 (llama.cpp b11351)
 Update: v0.35.1 (Date: 04.10.2026) — rebuilt on Ollama 0.35.1 (llama.cpp b11232); two tags now (clean / omni)
 Update: v0.32.14 (Date: 26.08.2026) — MTP / speculative decoding works, new benchmarks
 Update: v0.30.0-rc17 (Date: 17.05.2026) (add -e OLLAMA_LLM_LIBRARY=rocm)
 Update: v0.24.0 (Date: 17.05.2026)
 Update: v0.23.0 (Date: 05.05.2026)
 
-This repository contains a high-performance Docker image for **Ollama (v0.35.1)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
+This repository contains a high-performance Docker image for **Ollama (v0.40.13)**, specifically optimized for the **AMD Instinct MI50 (32GB HBM2)**.
 
 The build utilizes **ROCm 7.2** to fix critical issues found in standard deployments, such as text corruption ("garbage output") in recurrent models like **Qwen 3.5**.
 
 ## 🏷️ Which tag should I use?
 
-- **`v0.35.1`** (and `latest`) — clean build. Use this by default.
-- **`v0.35.1-omni`** — same engine, **plus** Ollama's in-process compatibility layer (`llama/compat`). Needed to load published ollama-format GGUFs whose architecture is not registered in mainline llama.cpp (e.g. `nemotron_h_omni`; single blob: text + vision + audio). Without it you get `error loading model: unknown model architecture: '<arch>'`.
+- **`v0.40.13`** (and `latest`) — use this by default. Engine v0.40.13 (llama.cpp b11963).
+- **`v0.35.1-omni`** — an old 0.35.1 build that existed because the compatibility layer (`llama/compat`) had to be linked separately. Since **v0.40.2** the shim is part of the default build, so newer tags have no `-omni` suffix: `v0.40.2` and `v0.40.13` both include it. It is what lets you load published ollama-format GGUFs whose architecture is not registered in mainline llama.cpp (e.g. `nemotron_h_omni`; single blob: text + vision + audio). Without it you get `error loading model: unknown model architecture: '<arch>'`.
 
-Both are engine v0.35.1 (llama.cpp b11232); the only difference is whether the compatibility shim is linked in.
+Since **v0.40.13** the CPU backend is built as 13 `libggml-cpu-<arch>.so` variants (`x64`, `sse42`, `sandybridge`, `ivybridge`, `piledriver`, `haswell`, `skylakex`, `cannonlake`, `cascadelake`, `icelake`, `cooperlake`, `zen4`, `alderlake`), and the loader picks the best one for the host CPU. Earlier tags up to **v0.40.2** shipped a single library compiled for x86-64-v3, which ggml refuses to register on anything older than Haswell — that is the `make_cpu_buft_list: no CPU backend found` failure reported in issue #6.
 
 ## 🌟 Key Improvements
 
@@ -26,7 +28,7 @@ Both are engine v0.35.1 (llama.cpp b11232); the only difference is whether the c
 
 ## 🚀 Performance (MI50 32GB)
 
-Numbers below were measured on the **v0.32.14 engine** (clean GPU, nothing else occupying VRAM, KV cache `q8_0`, flash attention on, all layers fully offloaded). The v0.35.1 engine uses the same `draft-mtp` speculative path; re-measure if you need exact v0.35.1 figures.
+Numbers below were measured on the **v0.32.14 engine** (clean GPU, nothing else occupying VRAM, KV cache `q8_0`, flash attention on, all layers fully offloaded). The v0.40.13 engine uses the same `draft-mtp` speculative path; re-measure if you need exact v0.40.13 figures.
 
 | model | long generation | short answers |
 |---|---|---|
@@ -96,8 +98,8 @@ docker run -d --name ollama-mi50 \
   xxdoman/ollama-mi50:latest
 ```
 
-`latest` is the rolling tag — it always points at the newest build (currently v0.35.1).
-Pin a specific version (`:v0.35.1`) if you want reproducible pulls.
+`latest` is the rolling tag — it always points at the newest build (currently v0.40.13).
+Pin a specific version (`:v0.40.13`) if you want reproducible pulls.
 
 ---
 
@@ -106,7 +108,7 @@ My Portainer (Stack)
 ```
 services:
   ollama-mi50:
-    image: xxdoman/ollama-mi50:v0.35.1
+    image: xxdoman/ollama-mi50:v0.40.13
     container_name: ollama-mi50
     restart: unless-stopped
     shm_size: 16g
