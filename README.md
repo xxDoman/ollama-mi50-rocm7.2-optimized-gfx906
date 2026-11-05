@@ -1,5 +1,6 @@
 # Optimized Ollama for AMD Instinct MI50 (gfx906)
 
+Update: v0.40.14 (Date: 05.11.2026) - same llama.cpp pin (`b11963`) as v0.40.13, so the gfx906 engine is identical; Go-side fixes only (OpenAI `/v1/responses` content, sampler defaults, cloud web-search decode, ChatGPT retries, Claude Code output limits). 13 CPU variants and the compat layer unchanged. Measured `lfm3-omni:2b` 161.3 tok/s.
 Update: v0.40.13 (Date: 30.10.2026) — rebuilt on Ollama 0.40.13 (llama.cpp b11963, the v0.8.x line): CPU backend now ships 13 arch variants, so models load again on CPUs older than Haswell (`make_cpu_buft_list: no CPU backend found`, issue #6); first release with LiquidAI LFM3 (text / vision / audio / omni)
 Update: v0.40.2 (Date: 11.10.2026) — Ollama 0.40.2 (llama.cpp b11351)
 Update: v0.35.1 (Date: 04.10.2026) — rebuilt on Ollama 0.35.1 (llama.cpp b11232); two tags now (clean / omni)
