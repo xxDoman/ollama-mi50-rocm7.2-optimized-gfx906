@@ -36,6 +36,8 @@ Numbers below were measured on the **v0.32.14 engine** (clean GPU, nothing else 
 | gemma4:26b without MTP (Q4_0) | ~53 tok/s | — |
 | gemma4:26b official (Q4_K_M, auto MTP) | ~65-68 tok/s | ~95 tok/s |
 | bvassie/gemma4:26b-a4b-it-qat-mtp (QAT Q4_0) | ~78 tok/s | ~115 tok/s |
+| lfm3-omni:2b (2B, Q4) | **159.7 tok/s** | — |
+| qwen3.8:27b + draft-mtp | **25.2 tok/s** | — (0.35.1 had 24.5) |
 
 With `sudo rocm-smi --setpoweroverdrive 160` (SCLK 1143 → 1606 MHz): add another +8-9%.
 
